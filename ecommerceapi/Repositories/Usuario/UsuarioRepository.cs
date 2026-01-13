@@ -17,5 +17,17 @@ namespace ecommerceapi.Repositories
         {
             return _dbConnection.Query<Usuario>("SELECT * FROM Usuarios").ToList();
         }
+
+        public Usuario Get(int id)
+        {
+            return _dbConnection.QuerySingleOrDefault<Usuario>("SELECT * FROM usuarios WHERE Id = @Id", new { Id = id });
+        }
+
+        public void Insert(Usuario usuario)
+        {
+            string sql = "INSERT INTO Usuarios(Nome, Email, Sexo, RG, CPF, NomeMae, SituacaoCadastro, DataCadastro) VALUES (@Nome, @Email, @Sexo, @RG, @CPF, @NomeMae, @ituacaoCadastro, @DataCadastro); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+
+            usuario.Id = _dbConnection.Query<int>(sql, usuario).Single();
+        }
     }
 }
