@@ -20,14 +20,50 @@ namespace ecommerceapi.Repositories
 
         public Usuario Get(int id)
         {
-            return _dbConnection.QuerySingleOrDefault<Usuario>("SELECT * FROM usuarios WHERE Id = @Id", new { Id = id });
+            return _dbConnection.Query<Usuario, Contato, Usuario>(
+                "SELECT * FROM usuarios LEFT JOIN Contatos on Contatios.UsuarioId = Usuarios.Id WHERE Id = @Id",
+                (usuario, contato) =>
+                {
+                    usuario.Contato = contato;
+                    return usuario;
+                },
+                new { Id = id }).SingleOrDefault();
         }
 
         public void Insert(Usuario usuario)
         {
-            string sql = "INSERT INTO Usuarios(Nome, Email, Sexo, RG, CPF, NomeMae, SituacaoCadastro, DataCadastro) VALUES (@Nome, @Email, @Sexo, @RG, @CPF, @NomeMae, @ituacaoCadastro, @DataCadastro); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+            _dbConnection.Open();
+            var transaction = _dbConnection.BeginTransaction();
 
-            usuario.Id = _dbConnection.Query<int>(sql, usuario).Single();
+            try
+            {
+                string sql = "INSERT INTO Usuarios(Nome, Email, Sexo, RG, CPF, NomeMae, SituacaoCadastro, DataCadastro) VALUES (@Nome, @Email, @Sexo, @RG, @CPF, @NomeMae, @ituacaoCadastro, @DataCadastro); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                usuario.Id = _dbConnection.Query<int>(sql, usuario, transaction).Single();
+
+                if(usuario.Contato != null)
+                {
+                    usuario.Contato.CodigoUsuario = usuario.Id;
+                    string sqlContato = "INSERT INTO Contatos(UsuarioId, Telefone, Celular) VALUES (@UsuarioId, @Telefone, @Celular); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                    usuario.Contato.CodigoUsuario = _dbConnection.Query<int>(sqlContato, usuario.Contato, transaction).Single();
+                }
+
+                transaction.Commit();
+            }
+            catch(Exception)
+            {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch(Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            finally
+            {
+                _dbConnection.Close(); 
+            }
         }
 
         public void Update(Usuario usuario) 
