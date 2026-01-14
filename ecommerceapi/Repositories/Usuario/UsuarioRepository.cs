@@ -29,5 +29,17 @@ namespace ecommerceapi.Repositories
 
             usuario.Id = _dbConnection.Query<int>(sql, usuario).Single();
         }
+
+        public void Update(Usuario usuario) 
+        {
+            string sql = "UPDATE Usuarios SET Nome = @Nome, Email = @Email, Sexo = @Sexo, RG = @RG, CPF = @CPF, NomeMae = @NomeMae, SituacaoCadastro = @SituacaoCadastro, DataCadastro = @DataCadastro WHERE Id = @Id";
+       
+            _dbConnection.Execute(sql, usuario);
+        }
+
+        public void Delete(int id)
+        {
+            _dbConnection.Execute("DELETE FROM Usuarios WHERE Id = @Id", new { Id = id });
+        }
     }
 }
