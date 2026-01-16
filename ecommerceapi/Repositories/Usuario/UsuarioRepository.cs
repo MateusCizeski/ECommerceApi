@@ -15,7 +15,26 @@ namespace ecommerceapi.Repositories
 
         public List<Usuario> Get()
         {
-            return _dbConnection.Query<Usuario>("SELECT * FROM Usuarios").ToList();
+            List<Usuario> usuarios = new List<Usuario>();
+
+            string sql = "SELECT * FROM Usuarios LEFT JOIN Contatos ON Contatos.UsuarioId = Usuarios.Id LEFT JOIN EnderecosEntrega ON EnderecosEntrega.UsuarioId = Usuarios.Id";
+
+            _dbConnection.Query<Usuario, Contato, EnderecoEntrega, Usuario>(sql,
+                (usuario, contato, enderecoEntrega) =>
+                {
+                    if(usuarios.SingleOrDefault(a => a.Id == usuario.Id) == null)
+                    {
+                        usuarios.Add(usuario);
+                    }else
+                    {
+                        usuario = usuarios.SingleOrDefault(a => a.Id == usuario.Id);
+                    }
+
+                    usuario.EnderecoEntregas.Add(enderecoEntrega);
+                    return usuario;
+
+                });
+            return usuarios;
         }
 
         public Usuario Get(int id)
