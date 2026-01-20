@@ -17,20 +17,27 @@ namespace ecommerceapi.Repositories
         {
             List<Usuario> usuarios = new List<Usuario>();
 
-            string sql = "SELECT * FROM Usuarios LEFT JOIN Contatos ON Contatos.UsuarioId = Usuarios.Id LEFT JOIN EnderecosEntrega ON EnderecosEntrega.UsuarioId = Usuarios.Id";
+            string sql = "SELECT U.*, C.*, EE.*, D.* FROM Usuarios as U LEFT JOIN Contatos C ON C.UsuarioId = U.Id LEFT JOIN EnderecosEntrega EE ON EE.UsuarioId = U.Id LEFT JOIN UsuariosDepartamentos UD ON UD.UsuarioId = U.Id LEFT JOIN Departamentos D ON UD.DepartamentoId = D.Id";
 
-            _dbConnection.Query<Usuario, Contato, EnderecoEntrega, Usuario>(sql,
-                (usuario, contato, enderecoEntrega) =>
+            _dbConnection.Query<Usuario, Contato, EnderecoEntrega, Departamento, Usuario>(sql,
+                (usuario, contato, enderecoEntrega, departamento) =>
                 {
                     if(usuarios.SingleOrDefault(a => a.Id == usuario.Id) == null)
                     {
+                        usuario.Departamentos = new List<Departamento>();
+                        usuario.EnderecoEntregas = new List<EnderecoEntrega>();
+                        usuario.Contato = contato;
                         usuarios.Add(usuario);
                     }else
                     {
                         usuario = usuarios.SingleOrDefault(a => a.Id == usuario.Id);
                     }
 
-                    usuario.EnderecoEntregas.Add(enderecoEntrega);
+                    if(usuario.EnderecoEntregas.SingleOrDefault(a => a.Id == enderecoEntrega.Id) == null)
+                    {
+                        usuario.EnderecoEntregas.Add(enderecoEntrega);
+                    }
+
                     return usuario;
 
                 });
@@ -41,13 +48,16 @@ namespace ecommerceapi.Repositories
         {
             List<Usuario> usuarios = new List<Usuario>();
 
-            string sql = "SELECT * FROM Usuarios LEFT JOIN Contatos ON Contatos.UsuarioId = Usuarios.Id LEFT JOIN EnderecosEntrega ON EnderecosEntrega.UsuarioId = Usuarios.Id WHERE Usuarios.Id = @Id";
+            string sql = "SELECT U.*, C.*, EE.*, D.* FROM Usuarios as U LEFT JOIN Contatos C ON C.UsuarioId = U.Id LEFT JOIN EnderecosEntrega EE ON EE.UsuarioId = U.Id LEFT JOIN UsuariosDepartamentos UD ON UD.UsuarioId = U.Id LEFT JOIN Departamentos D ON UD.DepartamentoId = D.Id WHERE U.Id = @Id";
 
-            _dbConnection.Query<Usuario, Contato, EnderecoEntrega, Usuario>(sql,
-                (usuario, contato, enderecoEntrega) =>
+            _dbConnection.Query<Usuario, Contato, EnderecoEntrega, Departamento, Usuario>(sql,
+                (usuario, contato, enderecoEntrega, departamento) =>
                 {
                     if (usuarios.SingleOrDefault(a => a.Id == usuario.Id) == null)
                     {
+                        usuario.Departamentos = new List<Departamento>();
+                        usuario.EnderecoEntregas = new List<EnderecoEntrega>();
+                        usuario.Contato = contato;
                         usuarios.Add(usuario);
                     }
                     else
@@ -55,7 +65,11 @@ namespace ecommerceapi.Repositories
                         usuario = usuarios.SingleOrDefault(a => a.Id == usuario.Id);
                     }
 
-                    usuario.EnderecoEntregas.Add(enderecoEntrega);
+                    if (usuario.EnderecoEntregas.SingleOrDefault(a => a.Id == enderecoEntrega.Id) == null)
+                    {
+                        usuario.EnderecoEntregas.Add(enderecoEntrega);
+                    }
+
                     return usuario;
 
                 }, new { Id = id });
