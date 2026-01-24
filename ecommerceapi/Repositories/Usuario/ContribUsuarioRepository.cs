@@ -1,32 +1,41 @@
-﻿using ecommerceapi.Models;
+﻿using System.Data;
+using ecommerceapi.Models;
+using System.Data.SqlClient;
+using Dapper.Contrib.Extensions;
 
 namespace ecommerceapi.Repositories
 {
     public class ContribUsuarioRepository : IUsuarioRepository
     {
+        private IDbConnection _dbConnection;
+        public ContribUsuarioRepository()
+        {
+            _dbConnection = new SqlConnection(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=eCommerce;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30");
+        }
+
         public void Delete(int id)
         {
-            throw new NotImplementedException();
+            _dbConnection.Delete(Get(id));
         }
 
         public List<Usuario> Get()
         {
-            throw new NotImplementedException();
+          return _dbConnection.GetAll<Usuario>().ToList();
         }
 
         public Usuario Get(int id)
         {
-            throw new NotImplementedException();
+            return _dbConnection.Get<Usuario>(id);
         }
 
         public void Insert(Usuario usuario)
         {
-            throw new NotImplementedException();
+            _dbConnection.Insert(usuario);
         }
 
         public void Update(Usuario usuario)
         {
-            throw new NotImplementedException();
+            _dbConnection.Update(usuario);
         }
     }
 }
